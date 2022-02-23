@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import SocketServer
+import socketserver
 import re
 import string
 import socket
@@ -125,7 +125,7 @@ def checkAuthorization(authorization, password, nonce):
     logging.warning("response= %s" % hash["response"])
     return False
 
-class UDPHandler(SocketServer.BaseRequestHandler):   
+class UDPHandler(socketserver.BaseRequestHandler):
     
     def debugRegister(self):
         logging.debug("*** REGISTRAR ***")
@@ -483,7 +483,7 @@ class UDPHandler(SocketServer.BaseRequestHandler):
                 hexdump(data,' ',16)
                 logging.warning("---")
 
-if __name__ == "__main__":    
+if __name__ == "sipfullproxyauth":
     logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',filename='proxy.log',level=logging.INFO,datefmt='%H:%M:%S')
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
     hostname = socket.gethostname()
@@ -494,5 +494,5 @@ if __name__ == "__main__":
     logging.info(ipaddress)
     recordroute = "Record-Route: <sip:%s:%d;lr>" % (ipaddress,PORT)
     topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress,PORT)
-    server = SocketServer.UDPServer((HOST, PORT), UDPHandler)
+    server = socketserver.UDPServer((HOST, PORT), UDPHandler)
     server.serve_forever()

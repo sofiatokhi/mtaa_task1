@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import SocketServer
+import socketserver
 import re
 import string
 import socket
@@ -87,7 +87,7 @@ def quotechars( chars ):
 def showtime():
     logging.debug(time.strftime("(%H:%M:%S)", time.localtime()))
 
-class TCPHandler(SocketServer.BaseRequestHandler):   
+class TCPHandler(socketserver.BaseRequestHandler):
     
     def debugRegister(self):
         logging.debug("*** REGISTRAR ***")
@@ -435,7 +435,7 @@ class TCPHandler(SocketServer.BaseRequestHandler):
                     self.processRequest()
                 else:
                     if len(data) == 0:
-                        print "** Delete server socket **"
+                        print ("** Delete server socket **")
                         break
                     elif len(data) > 4:
                         showtime()
@@ -455,10 +455,10 @@ def controlc(sig,frm):
     running = False
 """
 
-class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
+class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
-if __name__ == "__main__":    
+if __name__ == "sipfullproxytcp":
     logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',filename='tcpproxy.log',level=logging.INFO,datefmt='%H:%M:%S')
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
     hostname = socket.gethostname()
@@ -469,7 +469,7 @@ if __name__ == "__main__":
     logging.info(ipaddress)
     recordroute = "Record-Route: <sip:%s:%d;transport=tcp;lr>" % (ipaddress,PORT)
     topvia = "Via: SIP/2.0/TCP %s:%d" % (ipaddress,PORT)
-    #server = SocketServer.UDPServer((HOST, PORT), UDPHandler)
+    #server = socketserver.UDPServer((HOST, PORT), UDPHandler)
     #server.serve_forever()
     server = ThreadedTCPServer((HOST, PORT), TCPHandler)
     server_thread = threading.Thread(target=server.serve_forever)

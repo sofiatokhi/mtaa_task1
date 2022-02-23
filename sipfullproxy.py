@@ -14,7 +14,7 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import SocketServer
+import socketserver
 import re
 import string
 import socket
@@ -83,7 +83,7 @@ def quotechars( chars ):
 def showtime():
     logging.debug(time.strftime("(%H:%M:%S)", time.localtime()))
 
-class UDPHandler(SocketServer.BaseRequestHandler):   
+class UDPHandler(socketserver.BaseRequestHandler):
     
     def debugRegister(self):
         logging.debug("*** REGISTRAR ***")
@@ -426,5 +426,5 @@ if __name__ == "sipfullproxy":
     logging.info(ipaddress)
     recordroute = "Record-Route: <sip:%s:%d;lr>" % (ipaddress,PORT)
     topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress,PORT)
-    server = SocketServer.UDPServer((HOST, PORT), UDPHandler)
+    server = socketserver.UDPServer((HOST, PORT), UDPHandler)
     server.serve_forever()
