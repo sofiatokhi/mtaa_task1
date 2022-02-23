@@ -296,7 +296,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             logging.info("destination %s" % destination)
             if registrar.has_key(destination) and self.checkValidity(destination):
                 socket,claddr = self.getSocketInfo(destination)
-                #self.changeRequestUri()
+                #self.change_request_uri()
                 self.data = self.addTopVia()
                 data = self.removeRouteHeader()
                 #insert Record-Route
@@ -322,7 +322,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             logging.info("destination %s" % destination)
             if registrar.has_key(destination):
                 socket,claddr = self.getSocketInfo(destination)
-                #self.changeRequestUri()
+                #self.change_request_uri()
                 self.data = self.addTopVia()
                 data = self.removeRouteHeader()
                 #insert Record-Route
@@ -347,7 +347,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
             logging.info("destination %s" % destination)
             if registrar.has_key(destination) and self.checkValidity(destination):
                 socket,claddr = self.getSocketInfo(destination)
-                #self.changeRequestUri()
+                #self.change_request_uri()
                 self.data = self.addTopVia()
                 data = self.removeRouteHeader()
                 #insert Record-Route
@@ -379,7 +379,7 @@ class TCPHandler(socketserver.BaseRequestHandler):
                 
                 
     def processRequest(self):
-        #print "processRequest"
+        #print "process_request"
         if len(self.data) > 0:
             request_uri = self.data[0]
             if rx_register.search(request_uri):
@@ -458,6 +458,8 @@ def controlc(sig,frm):
 class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
     pass
 
+
+"""
 if __name__ == "sipfullproxytcp":
     logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',filename='tcpproxy.log',level=logging.INFO,datefmt='%H:%M:%S')
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
@@ -480,3 +482,4 @@ if __name__ == "sipfullproxytcp":
     #signal.pause()
     while True:
         pass
+"""

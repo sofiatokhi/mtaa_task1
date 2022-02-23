@@ -348,7 +348,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             logging.info("destination %s" % destination)
             if registrar.has_key(destination) and self.checkValidity(destination):
                 socket,claddr = self.getSocketInfo(destination)
-                #self.changeRequestUri()
+                #self.change_request_uri()
                 self.data = self.addTopVia()
                 data = self.removeRouteHeader()
                 #insert Record-Route
@@ -372,7 +372,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             logging.info("destination %s" % destination)
             if registrar.has_key(destination):
                 socket,claddr = self.getSocketInfo(destination)
-                #self.changeRequestUri()
+                #self.change_request_uri()
                 self.data = self.addTopVia()
                 data = self.removeRouteHeader()
                 #insert Record-Route
@@ -396,7 +396,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             logging.info("destination %s" % destination)
             if registrar.has_key(destination) and self.checkValidity(destination):
                 socket,claddr = self.getSocketInfo(destination)
-                #self.changeRequestUri()
+                #self.change_request_uri()
                 self.data = self.addTopVia()
                 data = self.removeRouteHeader()
                 #insert Record-Route
@@ -427,7 +427,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 
                 
     def processRequest(self):
-        #print "processRequest"
+        #print "process_request"
         if len(self.data) > 0:
             request_uri = self.data[0]
             if rx_register.search(request_uri):
@@ -483,7 +483,9 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 hexdump(data,' ',16)
                 logging.warning("---")
 
-if __name__ == "sipfullproxyauth":
+
+"""
+if __name__ == "sipfullproxyauth":    
     logging.basicConfig(format='%(asctime)s:%(levelname)s:%(message)s',filename='proxy.log',level=logging.INFO,datefmt='%H:%M:%S')
     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
     hostname = socket.gethostname()
@@ -496,3 +498,4 @@ if __name__ == "sipfullproxyauth":
     topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress,PORT)
     server = socketserver.UDPServer((HOST, PORT), UDPHandler)
     server.serve_forever()
+"""
