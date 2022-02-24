@@ -1,8 +1,6 @@
-import socket
-
 import sipfullproxy
-import sipfullproxyauth
 
+import socket
 import logging
 import time
 import sys
