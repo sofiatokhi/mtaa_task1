@@ -1,5 +1,6 @@
 import sipfullproxy
 
+from datetime import datetime
 import socket
 import logging
 import time
@@ -7,11 +8,11 @@ import sys
 
 
 def main():
-    print('subscribe to technoblade')
-    logging.basicConfig(filename='communication.log', format='%(asctime)s - %(levelname)s - %(message)s',
+    logging.basicConfig(filename='communication_' + datetime.now().strftime("%Y%m%d_%H-%M-%S") + '.log',
+                        format='%(asctime)s - %(levelname)s - %(message)s',
                         datefmt='%H:%M:%S', level=logging.INFO)
-    logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
 
+    logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
     hostname = socket.gethostname()
     logging.info(hostname)
 
@@ -20,7 +21,8 @@ def main():
         ipaddress = sys.argv[1]
     logging.info(ipaddress)
 
-    server = sipfullproxy.socketserver.UDPServer((sipfullproxy.HOST, sipfullproxy.PORT), sipfullproxy.UDPHandler)
+    print(str(hostname) + '\n' + str(ipaddress))
+    server = sipfullproxy.socketserver.UDPServer((ipaddress, sipfullproxy.PORT), sipfullproxy.UDPHandler)
     server.serve_forever()
 
 

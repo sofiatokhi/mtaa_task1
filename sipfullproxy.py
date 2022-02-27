@@ -19,8 +19,7 @@ import re
 import time
 import logging
 
-
-HOST, PORT = '0.0.0.0', 5060
+PORT = 5060
 
 rx_register = re.compile("^REGISTER")
 rx_invite = re.compile("^INVITE")
@@ -46,8 +45,8 @@ rx_ccontact = re.compile("^m:")
 rx_uri = re.compile("sip:([^@]*)@([^;>$]*)")
 rx_addr = re.compile("sip:([^ ;>$]*)")
 rx_code = re.compile("^SIP/2.0 ([^ ]*)")
-rx_invalid = re.compile("^192\.168")
-rx_invalid2 = re.compile("^10\.")
+# rx_invalid = re.compile("^192\.168")
+rx_invalid = re.compile("^10\.")
 rx_request_uri = re.compile("^([^ ]*) sip:([^ ]*) SIP/2.0")
 rx_route = re.compile("^Route:")
 rx_contentlength = re.compile("^Content-Length:")
@@ -82,14 +81,14 @@ def showtime():
 
 
 class UDPHandler(socketserver.BaseRequestHandler):
-    
+
     def debug_register(self):
         logging.debug("*** REGISTRAR ***")
         logging.debug("*****************")
         for key in registrar.keys():
             logging.debug("%s -> %s" % (key, registrar[key][0]))
         logging.debug("*****************")
-    
+
     def change_request_uri(self):
         # change request uri
         md = rx_request_uri.search(self.data[0])
@@ -100,7 +99,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             if uri in registrar:
                 uri = "sip:%s" % registrar[uri][0]
                 self.data[0] = "%s %s SIP/2.0" % (method, uri)
-        
+
     def remove_route_header(self):
         # delete Route
         data = []
@@ -108,7 +107,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             if not rx_route.search(line):
                 data.append(line)
         return data
-    
+
     def add_top_via(self):
         branch = ""
         data = []
@@ -146,7 +145,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 data.append(line)
 
         return data
-        
+
     def check_validity(self, uri):
         addrport, socket, client_addr, validity = registrar[uri]
         now = int(time.time())
@@ -157,21 +156,21 @@ class UDPHandler(socketserver.BaseRequestHandler):
             del registrar[uri]
             logging.warning("registration for %s has expired" % uri)
             return False
-    
+
     def get_socket_info(self, uri):
         addrport, socket, client_addr, validity = registrar[uri]
         return socket, client_addr
-        
+
     def get_destination(self):
         destination = ""
         for line in self.data:
             if rx_to.search(line) or rx_cto.search(line):
                 md = rx_uri.search(line)
                 if md:
-                    destination = "%s@%s" %(md.group(1), md.group(2))
+                    destination = "%s@%s" % (md.group(1), md.group(2))
                 break
         return destination
-                
+
     def get_origin(self):
         origin = ""
         for line in self.data:
@@ -181,7 +180,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                     origin = "%s@%s" % (md.group(1), md.group(2))
                 break
         return origin
-        
+
     def send_response(self, code):
         request_uri = "SIP/2.0 " + code
         self.data[0] = request_uri
@@ -211,11 +210,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
 
         data.append("")
         text = "\r\n".join(data)
-        self.socket.sendto(text, self.client_address)
+        self.socket.sendto(text.encode(), self.client_address)
         showtime()
         logging.info("<<< %s" % data[0])
         logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
-        
+
     def process_register(self):
         fromm = ""
         contact = ""
@@ -248,8 +247,8 @@ class UDPHandler(socketserver.BaseRequestHandler):
             md = rx_expires.search(line)
             if md:
                 header_expires = md.group(1)
-        
-        if rx_invalid.search(contact) or rx_invalid2.search(contact):
+
+        if rx_invalid.search(contact):
             if fromm in registrar:
                 del registrar[fromm]
             self.send_response("488 Not Acceptable Here")
@@ -259,7 +258,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             expires = int(contact_expires)
         elif len(header_expires) > 0:
             expires = int(header_expires)
-            
+
         if expires == 0 and fromm in registrar:
             del registrar[fromm]
             self.send_response("200 0K")
@@ -274,7 +273,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
         registrar[fromm] = [contact, self.socket, self.client_address, validity]
         self.debug_register()
         self.send_response("200 0K")
-        
+
     def process_invite(self):
         logging.debug("-----------------")
         logging.debug(" INVITE received ")
@@ -296,7 +295,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 # insert Record-Route
                 data.insert(1, recordroute)
                 text = '\r\n'.join(data)
-                socket.sendto(text, claddr)
+                socket.sendto(text.encode(), claddr)
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
@@ -304,7 +303,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 self.send_response("480 Temporarily Unavailable")
         else:
             self.send_response("500 Server Internal Error")
-                
+
     def process_ack(self):
         logging.debug("--------------")
         logging.debug(" ACK received ")
@@ -320,11 +319,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 # insert Record-Route
                 data.insert(1, recordroute)
                 text = '\r\n'.join(data)
-                socket.sendto(text, claddr)
+                socket.sendto(text.encode(), claddr)
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
-                
+
     def process_non_invite(self):
         logging.debug("----------------------")
         logging.debug(" NonInvite received   ")
@@ -344,7 +343,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 # insert Record-Route
                 data.insert(1, recordroute)
                 text = '\r\n'.join(data)
-                socket.sendto(text, claddr)
+                socket.sendto(text.encode(), claddr)
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
@@ -352,7 +351,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 self.send_response("406 Not Acceptable")
         else:
             self.send_response("500 Server Internal Error")
-                
+
     def process_code(self):
         origin = self.get_origin()
         if len(origin) > 0:
@@ -362,11 +361,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 self.data = self.remove_route_header()
                 data = self.remove_top_via()
                 text = '\r\n'.join(data)
-                socket.sendto(text, claddr)
+                socket.sendto(text.encode(), claddr)
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
-                
+
     def process_request(self):
         # print "process_request"
         if len(self.data) > 0:
@@ -406,12 +405,12 @@ class UDPHandler(socketserver.BaseRequestHandler):
             elif rx_code.search(request_uri):
                 self.process_code()
             else:
-                logging.error("request_uri %s" % request_uri)          
+                logging.error("request_uri %s" % request_uri)
                 # print "message %s unknown" % self.data
-    
+
     def handle(self):
         # socket.setdefaulttimeout(120)
-        data = self.request[0]
+        data = self.request[0].decode()
         self.data = data.split("\r\n")
         self.socket = self.request[1]
         request_uri = self.data[0]
