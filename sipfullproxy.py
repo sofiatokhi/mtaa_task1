@@ -16,10 +16,15 @@
 
 import socketserver
 import re
+import sys
 import time
 import logging
+from datetime import datetime
 
-PORT = 5060
+# PORT = 5060
+import socket
+
+HOST, PORT = '0.0.0.0', 5060
 
 rx_register = re.compile("^REGISTER")
 rx_invite = re.compile("^INVITE")
@@ -120,7 +125,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                     via = "%s;branch=%sm" % (topvia, branch)
                     data.append(via)
 
-                # report processing
+                # rport processing
                 if rx_rport.search(line):
                     text = "received=%s;rport=%d" % self.client_address
                     via = line.replace("rport", text)
@@ -193,7 +198,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 if not rx_tag.search(line):
                     data[index] = "%s%s" % (line, ";tag=123456")
             if rx_via.search(line) or rx_cvia.search(line):
-                # report processing
+                # rport processing
                 if rx_rport.search(line):
                     text = "received=%s;rport=%d" % self.client_address
                     data[index] = line.replace("rport", text)
@@ -209,7 +214,9 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 break
 
         data.append("")
-        text = "\r\n".join(data)
+        text = '\r\n'.join(data)
+
+        # todo: should i include 'utf-8' ????
         self.socket.sendto(text.encode(), self.client_address)
         showtime()
         logging.info("<<< %s" % data[0])
@@ -233,6 +240,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 md = rx_uri.search(line)
                 if md:
                     fromm = "%s@%s" % (md.group(1), md.group(2))
+
             if rx_contact.search(line) or rx_ccontact.search(line):
                 md = rx_uri.search(line)
                 if md:
@@ -244,25 +252,29 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 md = rx_contact_expires.search(line)
                 if md:
                     contact_expires = md.group(1)
+
             md = rx_expires.search(line)
             if md:
                 header_expires = md.group(1)
 
-        if rx_invalid.search(contact):
-            if fromm in registrar:
-                del registrar[fromm]
-            self.send_response("488 Not Acceptable Here")
-            return
+        # todo: check if it works with this one
+        # if rx_invalid.search(contact):
+        #     if fromm in registrar:
+        #         del registrar[fromm]
+        #     self.send_response("488 Not Acceptable Here")
+        #     return
 
         if len(contact_expires) > 0:
             expires = int(contact_expires)
         elif len(header_expires) > 0:
             expires = int(header_expires)
 
-        if expires == 0 and fromm in registrar:
-            del registrar[fromm]
-            self.send_response("200 0K")
-            return
+        # todo: later on i combined the 2 ifs into one
+        if expires == 0:
+            if fromm in registrar:
+                del registrar[fromm]
+                self.send_response("200 0K")
+                return
         else:
             now = int(time.time())
             validity = now + expires
@@ -295,7 +307,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 # insert Record-Route
                 data.insert(1, recordroute)
                 text = '\r\n'.join(data)
-                socket.sendto(text.encode(), claddr)
+                socket.sendto(text.encode(), claddr)  # todo: check if 'utf-8' improves the situation
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
@@ -319,7 +331,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 # insert Record-Route
                 data.insert(1, recordroute)
                 text = '\r\n'.join(data)
-                socket.sendto(text.encode(), claddr)
+                socket.sendto(text.encode(), claddr)  # todo: check for 'utf-8'
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
@@ -343,7 +355,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 # insert Record-Route
                 data.insert(1, recordroute)
                 text = '\r\n'.join(data)
-                socket.sendto(text.encode(), claddr)
+                socket.sendto(text.encode(), claddr)  # todo: 'utf-8'
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
@@ -361,7 +373,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 self.data = self.remove_route_header()
                 data = self.remove_top_via()
                 text = '\r\n'.join(data)
-                socket.sendto(text.encode(), claddr)
+                socket.sendto(text.encode(), claddr)  # todo: 'utf-8'
                 showtime()
                 logging.info("<<< %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
@@ -406,11 +418,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 self.process_code()
             else:
                 logging.error("request_uri %s" % request_uri)
-                # print "message %s unknown" % self.data
+                # print ("message %s unknown" % self.data)
 
     def handle(self):
         # socket.setdefaulttimeout(120)
-        data = self.request[0].decode()
+        data = self.request[0].decode()  # todo: 'utf-8'?
         self.data = data.split("\r\n")
         self.socket = self.request[1]
         request_uri = self.data[0]
@@ -427,3 +439,28 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 logging.warning("---\n>> server received [%d]:" % len(data))
                 hexdump(data, ' ', 16)
                 logging.warning("---")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(filename='communication_' + datetime.now().strftime("%Y%m%d_%H-%M-%S") + '.log',
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        datefmt='%H:%M:%S', level=logging.INFO)
+
+    logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
+    hostname = socket.gethostname()
+    logging.info(hostname)
+
+    # ipaddress = input('enter your ip: ')
+
+    ipaddress = socket.gethostbyname(hostname)
+    if ipaddress == '127.0.0.1':
+        ipaddress = sys.argv[1]
+    logging.info(ipaddress)
+
+    print(str(hostname) + '\n' + str(ipaddress))
+
+    recordroute = "Record-Route: <sip:%s:%d;lr>" % (ipaddress, PORT)
+    topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress, PORT)
+
+    server = socketserver.UDPServer((HOST, PORT), UDPHandler)
+    server.serve_forever()
