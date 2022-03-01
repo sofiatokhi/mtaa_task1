@@ -16,11 +16,8 @@
 
 import socketserver
 import re
-import sys
 import time
 import logging
-from datetime import datetime
-import socket
 
 HOST, PORT = '0.0.0.0', 5060
 
@@ -217,7 +214,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
         # todo: should i include 'utf-8' ????
         self.socket.sendto(text.encode(), self.client_address)
         showtime()
-        logging.info("\n<<< %s" % data[0])
+        logging.info("<<< %s" % data[0])
         logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
 
     def process_register(self):
@@ -437,28 +434,3 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 logging.warning("---\n>> server received [%d]:" % len(data))
                 hexdump(data, ' ', 16)
                 logging.warning("---")
-
-#
-# if __name__ == "__main__":
-#     logging.basicConfig(filename='communication_' + datetime.now().strftime("%Y%m%d_%H-%M-%S") + '.log',
-#                         format='%(asctime)s - %(levelname)s - %(message)s',
-#                         datefmt='%H:%M:%S', level=logging.INFO)
-#
-#     logging.info(time.strftime("%a, %d %b %Y %H:%M:%S ", time.localtime()))
-#     # hostname = socket.gethostname()
-#     # logging.info(hostname)
-#
-#     ipaddress = input('enter your ip: ')
-#
-#     # ipaddress = socket.gethostbyname(hostname)
-#     if ipaddress == '127.0.0.1':
-#         ipaddress = sys.argv[1]
-#     logging.info(ipaddress)
-#
-#     # print(str(hostname) + '\n' + str(ipaddress))
-#
-#     recordroute = "Record-Route: <sip:%s:%d;lr>" % (ipaddress, PORT)
-#     topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress, PORT)
-#
-#     server = socketserver.UDPServer((HOST, PORT), UDPHandler)
-#     server.serve_forever()

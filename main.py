@@ -1,12 +1,10 @@
 from datetime import datetime
-from sipfullproxy import UDPHandler
+import sipfullproxy
 import socketserver
 import socket
 import logging
 import time
 import sys
-
-HOST, PORT = '0.0.0.0', 5060
 
 
 def main():
@@ -31,10 +29,10 @@ def main():
 
     print('connection is established at:\n[hostname] ' + hostname + '\n[ip] ' + ipaddress)
 
-    recordroute = "Record-Route: <sip:%s:%d;lr>" % (ipaddress, PORT)
-    topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress, PORT)
+    sipfullproxy.recordroute = "Record-Route: <sip:%s:%d;lr>" % (ipaddress, sipfullproxy.PORT)
+    sipfullproxy.topvia = "Via: SIP/2.0/UDP %s:%d" % (ipaddress, sipfullproxy.PORT)
 
-    server = socketserver.UDPServer((HOST, PORT), UDPHandler)
+    server = socketserver.UDPServer((sipfullproxy.HOST, sipfullproxy.PORT), sipfullproxy.UDPHandler)
     server.serve_forever()
 
 
