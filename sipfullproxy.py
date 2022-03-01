@@ -211,10 +211,9 @@ class UDPHandler(socketserver.BaseRequestHandler):
         data.append("")
         text = '\r\n'.join(data)
 
-        # todo: should i include 'utf-8' ????
         self.socket.sendto(text.encode(), self.client_address)
         showtime()
-        logging.info("<<< %s" % data[0])
+        logging.info("[ PROXY response ] --- %s" % data[0])
         logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
 
     def process_register(self):
@@ -252,19 +251,11 @@ class UDPHandler(socketserver.BaseRequestHandler):
             if md:
                 header_expires = md.group(1)
 
-        # todo: check if it works with this one
-        # if rx_invalid.search(contact):
-        #     if fromm in registrar:
-        #         del registrar[fromm]
-        #     self.send_response("488 Not Acceptable Here")
-        #     return
-
         if len(contact_expires) > 0:
             expires = int(contact_expires)
         elif len(header_expires) > 0:
             expires = int(header_expires)
 
-        # todo: later on i combined the 2 ifs into one
         if expires == 0:
             if fromm in registrar:
                 del registrar[fromm]
@@ -274,7 +265,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             now = int(time.time())
             validity = now + expires
 
-        logging.info("From: %s - Contact: %s" % (fromm, contact))
+        logging.info("[ CALLER response ] account: %s (located at %s)" % (fromm, contact))
         logging.debug("Client address: %s:%s" % self.client_address)
         logging.debug("Expires= %d" % expires)
         registrar[fromm] = [contact, self.socket, self.client_address, validity]
@@ -293,7 +284,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
 
         destination = self.get_destination()
         if len(destination) > 0:
-            logging.info("destination %s" % destination)
+            logging.info("[ recipient ] %s" % destination)
             if destination in registrar and self.check_validity(destination):
                 socket, claddr = self.get_socket_info(destination)
                 # self.change_request_uri()
@@ -302,9 +293,9 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 # insert Record-Route
                 data.insert(1, recordroute)
                 text = '\r\n'.join(data)
-                socket.sendto(text.encode(), claddr)  # todo: check if 'utf-8' improves the situation
+                socket.sendto(text.encode(), claddr)
                 showtime()
-                logging.info("<<< %s" % data[0])
+                logging.info("< msg < %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
             else:
                 self.send_response("480 The Called Destination is Too Popular for You")
@@ -317,7 +308,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
         logging.debug("--------------")
         destination = self.get_destination()
         if len(destination) > 0:
-            logging.info("destination %s" % destination)
+            logging.info("[ recipient ] %s" % destination)
             if destination in registrar:
                 socket, claddr = self.get_socket_info(destination)
                 # self.change_request_uri()
@@ -328,7 +319,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 text = '\r\n'.join(data)
                 socket.sendto(text.encode(), claddr)  # todo: check for 'utf-8'
                 showtime()
-                logging.info("<<< %s" % data[0])
+                logging.info("< msg < %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
 
     def process_non_invite(self):
@@ -341,7 +332,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
             return
         destination = self.get_destination()
         if len(destination) > 0:
-            logging.info("destination %s" % destination)
+            logging.info("[ recipient ] %s" % destination)
             if destination in registrar and self.check_validity(destination):
                 socket, claddr = self.get_socket_info(destination)
                 # self.change_request_uri()
@@ -352,7 +343,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 text = '\r\n'.join(data)
                 socket.sendto(text.encode(), claddr)  # todo: 'utf-8'
                 showtime()
-                logging.info("<<< %s" % data[0])
+                logging.info("< msg < %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
             else:
                 self.send_response("406 Think Again, Buddy")
@@ -370,7 +361,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
                 text = '\r\n'.join(data)
                 socket.sendto(text.encode(), claddr)  # todo: 'utf-8'
                 showtime()
-                logging.info("<<< %s" % data[0])
+                logging.info("< msg < %s" % data[0])
                 logging.debug("---\n<< server send [%d]:\n%s\n---" % (len(text), text))
 
     def process_request(self):
@@ -424,7 +415,7 @@ class UDPHandler(socketserver.BaseRequestHandler):
 
         if rx_request_uri.search(request_uri) or rx_code.search(request_uri):
             showtime()
-            logging.info(">>> %s" % request_uri)
+            logging.info("> request > %s" % request_uri)
             logging.debug("---\n>> server received [%d]:\n%s\n---" % (len(data), data))
             logging.debug("Received from %s:%d" % self.client_address)
             self.process_request()
